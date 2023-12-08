@@ -8,14 +8,21 @@ class Client
 
     private $token;
     private $curlHandle;
+	private $isProxy;
+	private $proxy;
+	private $proxyAuth;
 
-    public function __construct(string $token)
+    public function __construct(string $token, array $proxy = [])
     {
         $this->token = $token;
         $this->curlHandle = curl_init();
         if (!$this->curlHandle) {
             throw new Exception('Failed to initialize cURL');
         }
+	    $this->isProxy = !empty($proxy['ip']) && !empty($proxy['port']) && !empty($proxy['user']
+			    && !empty($proxy['pass']));
+	    $this->proxy = $proxy['ip'] . ":" . $proxy['port'];
+	    $this->proxyAuth = $proxy['user'] . ":" . $proxy['pass'];
     }
 
     public function post(string $url, array $data = []): array
@@ -45,6 +52,11 @@ class Client
             'Authorization: Bearer ' . $this->token,
             'Content-Type: application/json'
         ]);
+
+		if($this->isProxy) {
+			curl_setopt($this->curlHandle, CURLOPT_PROXY, $this->proxy);
+			curl_setopt($this->curlHandle, CURLOPT_PROXYUSERPWD, $this->proxyAuth);
+		}
         curl_setopt($this->curlHandle, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($this->curlHandle, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($this->curlHandle, CURLOPT_HTTP_VERSION, '1.1');

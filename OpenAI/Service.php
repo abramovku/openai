@@ -6,12 +6,12 @@ class Service
 {
     private $client;
 
-    public function __construct(string $token)
+    public function __construct(string $token, array $proxy = [])
     {
         if (!empty($this->token)) {
             throw new Exception('Provide Open AI token');
         }
-        $this->client = new Client($token);
+        $this->client = new Client($token, $proxy);
     }
 
     public function sendPrompt(string $prompt): string
