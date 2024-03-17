@@ -14,9 +14,10 @@ class Service
         $this->client = new Client($token, $proxy);
     }
 
-    public function sendPrompt(string $prompt): string
+    public function sendPrompt(string $prompt, bool $smartTv = false): string
     {
-        $result = $this->client->post('chat/completions', $this->preparePrompt($prompt));
+        $result = $this->client->post('chat/completions', $this->preparePrompt($prompt, null, null,
+	        $smartTv));
 
         if (empty($result)) {
             throw new Exception('Wrong response from OpenAI');
@@ -41,7 +42,12 @@ class Service
         return html_entity_decode($text);
     }
 
-	private function preparePrompt(string $prompt, ?string $prefix = null, ?string $suffix = null): array
+	private function preparePrompt(
+		string $prompt,
+		?string $prefix = null,
+		?string $suffix = null,
+		bool $smartTv = false
+	): array
 	{
 		$prompt = $this->sanitizeText($prompt);
 		if ($prefix === null) {
@@ -52,12 +58,18 @@ class Service
 			$suffix = "";
 		}
 
+		if ($smartTv){
+			$smartText = '. Укажи о наличии функции Smart TV';
+		} else {
+			$smartText = '. Не указывай информацию о наличии Smart TV';
+		}
+
 		return [
 			"model" => "gpt-3.5-turbo",
 			"messages" => [
 				[
 					"role" => "user",
-					"content" => $prefix . $prompt . $suffix
+					"content" => $prefix . $prompt . $suffix . $smartText,
 				]
 			]
 		];
