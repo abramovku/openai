@@ -47,7 +47,7 @@ class Client
     private function setCurlOptions (string $url, string $method, array $data = []): void
     {
         curl_setopt($this->curlHandle, CURLOPT_URL, $url);
-        curl_setopt($this->curlHandle, CURLOPT_TIMEOUT, 30);
+        curl_setopt($this->curlHandle, CURLOPT_TIMEOUT, 35);
         curl_setopt($this->curlHandle, CURLOPT_HTTPHEADER, [
             'Authorization: Bearer ' . $this->token,
             'Content-Type: application/json'
