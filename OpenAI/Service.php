@@ -14,10 +14,10 @@ class Service
         $this->client = new Client($token, $proxy);
     }
 
-    public function sendPrompt(string $prompt, bool $smartTv = false): string
+    public function sendPrompt(string $prompt, ?string $smartTv = null, ?string $model = null): string
     {
-        $result = $this->client->post('chat/completions', $this->preparePrompt($prompt, null, null,
-	        $smartTv));
+        $result = $this->client->post('chat/completions',
+            $this->preparePrompt($prompt, null, null, $smartTv, $model ));
 
         if (empty($result)) {
             throw new Exception('Wrong response from OpenAI');
@@ -44,11 +44,16 @@ class Service
 
 	private function preparePrompt(
 		string $prompt,
-		?string $prefix = null,
-		?string $suffix = null,
-		bool $smartTv = false
+        ?string $prefix = null,
+        ?string $suffix = null,
+        ?string $smartTv = null,
+        ?string $model = null
+
 	): array
 	{
+        if (empty($model)) {
+            $model = "gpt-3.5-turbo";
+        }
 		$prompt = $this->sanitizeText($prompt);
 		if ($prefix === null) {
 			$prefix = "Подготовь мне описание на русском языке для товара в интернет магазине: ";
@@ -58,14 +63,16 @@ class Service
 			$suffix = "";
 		}
 
-		if ($smartTv){
+		if ($smartTv === 'true'){
 			$smartText = '. Укажи о наличии функции Smart TV';
-		} else {
+		} elseif ($smartTv === 'false') {
 			$smartText = '. Не указывай информацию о наличии Smart TV';
-		}
+		} else {
+            $smartText = "";
+        }
 
 		return [
-			"model" => "gpt-3.5-turbo",
+			"model" => $model,
 			"messages" => [
 				[
 					"role" => "user",
@@ -75,9 +82,11 @@ class Service
 		];
 	}
 
-	public function sendPromptWithPrefix(string $prompt, string $prefix, string $suffix): string
+	public function sendPromptWithPrefix(string $prompt, string $prefix, string $suffix, ?string $model = null): string
 	{
-		$result = $this->client->post('chat/completions', $this->preparePrompt($prompt, $prefix, $suffix));
+		$result = $this->client->post('chat/completions',
+            $this->preparePrompt($prompt, $prefix, $suffix, null, $model)
+        );
 
 		if (empty($result)) {
 			throw new Exception('Wrong response from OpenAI');
